@@ -158,7 +158,7 @@
 			});
 			loader.load(new URLRequest("./" + Main.CONFIG_XML));
 			
-			try { stage.displayState=StageDisplayState.FULL_SCREEN; }catch(err:Error){}
+			//try { stage.displayState=StageDisplayState.FULL_SCREEN; }catch(err:Error){}
 			
 			// -------------------------------------------------------------------
 			// -------------------------------------------------------------------
