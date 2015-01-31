@@ -24,6 +24,10 @@
 		
 		// ---------------------------------------------------------------
 		
+		public static var CONFIG_W:Number = 650;
+		public static var CONFIG_H:Number = 350;
+		
+		
 		public static var CONFIG_XML:String = "app.xml";
 		
 		// ค่าที่อ่านได้จาก config file
@@ -32,10 +36,21 @@
 		public static var CONFIG_STEP_QUERY:Number;
 		public static var CONFIG_STEP_REFRESH_UI:Number;
 		
-		public static var CONFIG_KEY_PLUS_A:String;
-		public static var CONFIG_KEY_PLUS_B:String;
-		public static var CONFIG_KEY_MINUS_A:String;
-		public static var CONFIG_KEY_MINUS_B:String;
+		public static var CONFIG_KEY_SCORE_PLUS_A:String;
+		public static var CONFIG_KEY_SCORE_PLUS_B:String;
+		public static var CONFIG_KEY_SCORE_MINUS_A:String;
+		public static var CONFIG_KEY_SCORE_MINUS_B:String;
+		public static var CONFIG_KEY_SCORE_RESET:String;
+		
+		public static var CONFIG_KEY_TIME_START_STOP:String;
+		public static var CONFIG_KEY_TIME_FORWARD_MODE:String;
+		public static var CONFIG_KEY_TIME_FORWARD_RESET:String;
+		public static var CONFIG_KEY_TIME_COUNTDOWN_MODE:String;
+		public static var CONFIG_KEY_TIME_COUNTDOWN_PLUS:String;
+		public static var CONFIG_KEY_TIME_COUNTDOWN_MINUS:String;
+		
+		public static var CONFIG_TIMER_COUNTDOWN_MODE_DEFAULT_PERIOD:Number;
+		public static var CONFIG_TIMER_COUNTDONW_MODE_STEP:Number;
 		// ---------------------------------------------------------------
 
 		private var clockIntervalID:uint;
@@ -48,6 +63,14 @@
 		
 		private static var cacheA:Number;
 		private static var cacheB:Number;
+			
+		// forward, countdown
+		private static var cacheTimerMode:String;
+		// start, stop
+		private static var cacheTimerState:String;
+		
+		private static var cacheCountForward:Number;
+		private static var cacheCountCountdown:Number;
 		
 		// ---------------------------------------------------------------		
 		
@@ -57,6 +80,7 @@
 			Main.rt 					= this;
 			this.stepCnt 				= 0; 
 			this.modalPanel.visible 	= false;
+			
 			this.clearUI();
 		
 			try{
@@ -73,19 +97,23 @@
 				
 				// อ่านค่า config.xml เรียบร้อยแล้ว
 				var responseXML:XML = new XML(e.target.data);
-				trace("--------------------------------");
-				trace("LOADED - config file");
-				trace("--------------------------------");
 				
 				var config:XML = responseXML;
 				if(config.auth.length() < 1
-					|| config.serverURL.length() < 1
-					|| config.stepQuery.length() < 1
-					|| config.stepRefreshUI.length() < 1
-					|| config.keyPlusA.length() < 1
-					|| config.keyPlusB.length() < 1
-					|| config.keyMinusA.length() < 1
-					|| config.keyMinusA.length() < 1
+					|| config.keyScorePlusA.length() < 1
+					|| config.keyScorePlusB.length() < 1
+					|| config.keyScoreMinusA.length() < 1
+					|| config.keyScoreMinusB.length() < 1
+					|| config.keyScoreReset.length() < 1
+					|| config.keyTimeStartStop.length() < 1
+					|| config.keyTimeForwardMode.length() < 1
+					|| config.keyTimeForwardReset.length() < 1
+					|| config.keyTimeCountdownMode.length() < 1
+					|| config.keyTimeCountdownPlus.length() < 1
+					|| config.keyTimeCountdownMinus.length() < 1
+					|| config.timerDefaultMode.length() < 1
+					|| config.timerCountdownModeDefaultPeriod.length() < 1
+					|| config.timerCountdownModeStep.length() < 1
 				){
 					failedOnLoadConfig();
 					return;
@@ -95,37 +123,41 @@
 				Main.CONFIG_STEP_QUERY 					= Utils.parse(config.stepQuery);
 				Main.CONFIG_STEP_REFRESH_UI 			= Utils.parse(config.stepRefreshUI);
 				
-				Main.CONFIG_KEY_PLUS_A 					= config.keyPlusA;
-				Main.CONFIG_KEY_PLUS_B 					= config.keyPlusB;
-				Main.CONFIG_KEY_MINUS_A 				= config.keyMinusA;
-				Main.CONFIG_KEY_MINUS_B 				= config.keyMinusB;
+				Main.CONFIG_KEY_SCORE_PLUS_A 			= config.keyScorePlusA;
+				Main.CONFIG_KEY_SCORE_PLUS_B 			= config.keyScorePlusB;
+				Main.CONFIG_KEY_SCORE_MINUS_A 			= config.keyScoreMinusA;
+				Main.CONFIG_KEY_SCORE_MINUS_B 			= config.keyScoreMinusB;
+				Main.CONFIG_KEY_SCORE_RESET 			= config.keyScoreReset;
+				
+				Main.CONFIG_KEY_TIME_START_STOP 		= config.keyTimeStartStop;
+				Main.CONFIG_KEY_TIME_FORWARD_MODE 		= config.keyTimeForwardMode;
+				Main.CONFIG_KEY_TIME_FORWARD_RESET 		= config.keyTimeForwardReset;
+				Main.CONFIG_KEY_TIME_COUNTDOWN_MODE 	= config.keyTimeCountdownMode;
+				Main.CONFIG_KEY_TIME_COUNTDOWN_PLUS 	= config.keyTimeCountdownPlus;
+				Main.CONFIG_KEY_TIME_COUNTDOWN_MINUS 	= config.keyTimeCountdownMinus;
+				
+				if(config.timerDefaultMode.toString() == "countdown"){
+					Main.cacheTimerMode = "countdown";
+				}else{
+					Main.cacheTimerMode = "forward";
+				}
+				Main.CONFIG_TIMER_COUNTDOWN_MODE_DEFAULT_PERIOD = Utils.parse(config.timerCountdownModeDefaultPeriod);
+				Main.CONFIG_TIMER_COUNTDONW_MODE_STEP = Utils.parse(config.timerCountdownModeStep);				
 				
 				Main.rt.stepIntervalID = setInterval(function(){
-												
-					var isQuery:Boolean = false;
-					var isRefreshUI:Boolean = false;
-					if(stepCnt % Main.CONFIG_STEP_QUERY == 0){
-						
-						// query and ui
-						isQuery = true;
-						doQuery();
-					}
-					if(stepCnt % Main.CONFIG_STEP_REFRESH_UI == 0 && !isQuery){
-						
-						// ui
-						isRefreshUI = true;
-						
-					}
-					//trace("step:", stepCnt, " query:",isQuery, " ui:", isUpdateUI);
 					
-					stepCnt++;
-					if(stepCnt == Main.CONFIG_STEP_REFRESH_UI * Main.CONFIG_STEP_QUERY) stepCnt = 0;
+					Main.rt.updateTimerUI();
 					
 				}, 1000);
 				
 				// นาฬิกา 
 			 	Main.rt.clockIntervalID = setInterval(function(){ updateClockUI();}, (60 * 1000));
-				updateClockUI();
+				
+				Main.rt.clearUI();
+				
+				trace("--------------------------------");
+				trace("LOADED - config file");
+				trace("--------------------------------");
 			});
 			loader.addEventListener(IOErrorEvent.IO_ERROR, function(e:Event) {
 										   
@@ -148,18 +180,87 @@
 
 				var key:String = String.fromCharCode(ev.charCode);
 				
-				if(key == Main.CONFIG_KEY_PLUS_A){
+				if(key == Main.CONFIG_KEY_SCORE_PLUS_A){
+					
+					if(Main.DEBUG_TRACE) trace("[BUTTON] plus A");
 					Main.cacheA++;
 					updateScoreUI();
-				}else if(key == Main.CONFIG_KEY_MINUS_A){
+					
+				}else if(key == Main.CONFIG_KEY_SCORE_MINUS_A){
+					
+					if(Main.DEBUG_TRACE) trace("[BUTTON] minus A");
 					if(Main.cacheA > 0) Main.cacheA--;
 					updateScoreUI();
-				}else if(key == Main.CONFIG_KEY_PLUS_B){
+					
+				}else if(key == Main.CONFIG_KEY_SCORE_PLUS_B){
+					
+					if(Main.DEBUG_TRACE) trace("[BUTTON] plus B");
 					Main.cacheB++;
 					updateScoreUI();
-				}else if(key == Main.CONFIG_KEY_MINUS_B){
+					
+				}else if(key == Main.CONFIG_KEY_SCORE_MINUS_B){
+					
+					if(Main.DEBUG_TRACE) trace("[BUTTON] plus B");
 					if(Main.cacheB > 0) Main.cacheB--;
 					updateScoreUI();
+					
+				}else if(key == Main.CONFIG_KEY_SCORE_RESET){
+					
+					if(Main.DEBUG_TRACE) trace("[BUTTON] clear score");
+					clearScore();
+					
+				}else if(key == Main.CONFIG_KEY_TIME_START_STOP){
+					
+					if(Main.DEBUG_TRACE) trace("[BUTTON] start/stop");
+					
+					if(Main.cacheTimerState == "stop"){
+						
+						Main.cacheTimerState = "start";
+					}else{
+					
+						Main.cacheTimerState = "stop";
+					}
+					
+				}else if(key == Main.CONFIG_KEY_TIME_FORWARD_MODE){
+					
+					if(Main.DEBUG_TRACE) trace("[BUTTON] forward mode");
+					
+					// เปลี่ยน mode การแสดงผลและหยุด ไม่ reset
+					if(Main.cacheTimerMode != "forward"){
+						Main.cacheTimerState = "stop";
+						Main.cacheTimerMode = "forward";
+						updateTimerUI();
+					}
+					
+				}else if(key == Main.CONFIG_KEY_TIME_COUNTDOWN_MODE){
+					
+					if(Main.DEBUG_TRACE) trace("[BUTTON] countdown mode");
+					
+					// เปลี่ยน mode การแสดงผลและหยุด ไม่ reset
+					if(Main.cacheTimerMode != "countdown"){
+						Main.cacheTimerState = "stop";
+						Main.cacheTimerMode = "countdown";
+						updateTimerUI();
+					}
+					
+				}else if(key == Main.CONFIG_KEY_TIME_COUNTDOWN_PLUS){
+					
+					if(Main.cacheTimerMode == "countdown" && Main.cacheTimerState == "stop"){
+						
+						Main.cacheCountCountdown += Main.CONFIG_TIMER_COUNTDONW_MODE_STEP;
+						updateTimerUI();
+					}
+				}else if(key == Main.CONFIG_KEY_TIME_COUNTDOWN_MINUS){
+					
+					if(Main.cacheTimerMode == "countdown" && Main.cacheTimerState == "stop"){
+						
+						if(Main.cacheCountCountdown >= Main.CONFIG_TIMER_COUNTDONW_MODE_STEP) {
+							Main.cacheCountCountdown -= Main.CONFIG_TIMER_COUNTDONW_MODE_STEP;
+						}else{
+							Main.cacheCountCountdown = 0;
+						}
+						updateTimerUI();
+					}
 				}
 				
 			} 
@@ -176,11 +277,6 @@
 				}catch(err:Error){}
 			});
 			
-		}
-		
-		private function doQuery():void{
-			
-			if(Main.DEBUG_TRACE) trace("[Query and UI]");
 		}
 		
 		// -------------------------------------------------------------------
@@ -200,8 +296,6 @@
 		
 		private function updateScoreUI():void{
 			
-			trace(Main.cacheA,Main.cacheB);
-			
 			(Main.rt["scoreA_1"] as NumberPanel).setN(Math.floor(Main.cacheA / 10));
 			(Main.rt["scoreA_0"] as NumberPanel).setN(Main.cacheA % 10);
 			
@@ -209,21 +303,59 @@
 			(Main.rt["scoreB_0"] as NumberPanel).setN(Main.cacheB % 10);
 		}
 		
+		// แสดงเวลาจากค่าใน cache
+		// อัพเดทโดย interval กับ clear timer เท่านั้น
+		private function updateTimerUI():void{
+			
+			//trace(Main.cacheTimerState , Main.cacheTimerMode, Main.cacheTimer );
+			// ---------------------------------------------------
+			var tmpTimer:Number;
+			
+			if(Main.cacheTimerMode == "countdown"){
+				
+				if(Main.cacheTimerState != "stop"){
+					
+					if(Main.cacheCountCountdown > 0) Main.cacheCountCountdown--;
+				}
+				tmpTimer = Main.cacheCountCountdown;
+				
+			}else{
+				
+				if(Main.cacheTimerState != "stop"){
+					
+					Main.cacheCountForward++;
+				}
+				tmpTimer = Main.cacheCountForward;
+			}
+			
+			trace("tmpTimer",tmpTimer);
+			// ---------------------------------------------------
+			// อัพเดท UI
+			var min:Number = Math.floor(tmpTimer / 60);
+			if(min > 99) min = 99;
+			var sec:Number = Math.floor(tmpTimer % 60);
+			
+			(Main.rt["timer"] as FieldTimer).setTimer(min,sec);
+			// ---------------------------------------------------
+		}
+		
 		private function clearUI():void{
 			
+			clearScore();
+			clearTimer();
+		}
+		private function clearScore():void{
 			Main.cacheA = 0;
 			Main.cacheB = 0;
-			
 			updateScoreUI();
-			/*
-			for(var i=1;i<=5;i++){
-				
-				if (getChildByName("line_"+i) != null){
-					(this["line_"+i] as DisplayRoom).displayLineNo = i;
-					(this["line_"+i] as DisplayRoom).clearUI();
-				}
-			}
-			*/
+		}
+		private function clearTimer():void{
+			
+			Main.cacheTimerState = "stop";
+			Main.cacheCountForward = 0;
+			Main.cacheCountCountdown = Main.CONFIG_TIMER_COUNTDOWN_MODE_DEFAULT_PERIOD;
+			
+			updateTimerUI();
 		}
 		
 		// -------------------------------------------------------------------
@@ -232,6 +364,7 @@
 		
 		// โหลด config ไม่สำเร็จ บังคับ refresh ข้อมูล
 		private function failedOnLoadConfig():void{
+			
 			var msg: ModalDialog = new ModalDialog("เกิดข้อผิดพลาดในการอ่านค่า "+ Main.CONFIG_XML +" \n กรุณาลองเปิดโปรแกรมใหม่อีกครั้ง");
 			(new DialogManager(msg)).showDialog();
 		}

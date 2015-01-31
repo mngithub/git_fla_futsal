@@ -1,26 +1,30 @@
 ﻿<config>
 	
-	<!-- --------------------------- SERVER ------------------------- -->
+	<!-- --------------------------- TIMER -------------------------- -->
 	
 	<auth>FtdV5IIJap</auth>
-	<serverURL>http://122.155.12.135/~tcc/query_day_2.php</serverURL>
-	
 
-	
-	<!-- --------------------------- TIME --------------------------- -->
-	
-	<!-- query ข้อมูลทุกกี่วินาที  -->
-	<stepQuery>180</stepQuery>
+	<!-- forward, countdown -->
+	<timerDefaultMode>countdown</timerDefaultMode>
+	<timerCountdownModeDefaultPeriod>420</timerCountdownModeDefaultPeriod>
+	<timerCountdownModeStep>30</timerCountdownModeStep>
 
-	<!-- update ข้อมูลทุกกี่วินาที  -->
-	<stepRefreshUI>5</stepRefreshUI>
-	
 	<!-- --------------------------- KEY ---------------------------- -->
 
-	<keyPlusA>1</keyPlusA>
-	<keyMinusA>2</keyMinusA>
 
-	<keyPlusB>3</keyPlusB>
-	<keyMinusB>4</keyMinusB>
+	<keyScorePlusA>1</keyScorePlusA>
+	<keyScoreMinusA>2</keyScoreMinusA>
+	<keyScorePlusB>3</keyScorePlusB>
+	<keyScoreMinusB>4</keyScoreMinusB>
+	<keyScoreReset>5</keyScoreReset>
+
+	<keyTimeStartStop>6</keyTimeStartStop>
+
+	<keyTimeForwardMode>7</keyTimeForwardMode>
+	<keyTimeForwardReset>8</keyTimeForwardReset>
+	
+	<keyTimeCountdownMode>9</keyTimeCountdownMode>
+	<keyTimeCountdownPlus>a</keyTimeCountdownPlus>
+	<keyTimeCountdownMinus>b</keyTimeCountdownMinus>
 	
 </config>

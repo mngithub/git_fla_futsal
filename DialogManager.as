@@ -32,8 +32,8 @@
 			this.addChild(this.dialog);
 			
 			// dialog ตรงกลาง screen
-			this.dialog.x = Main.rt.width / 2;
-			this.dialog.y = Main.rt.height / 2 - 40;
+			this.dialog.x = Main.CONFIG_W / 2;
+			this.dialog.y = Main.CONFIG_H / 2 - 40;
 		}
 		// ปิด dialog
 		public function closeDialog():void
@@ -82,8 +82,8 @@
 			
 			Main.rt.modalPanel.x = 0;
 			Main.rt.modalPanel.y = 0;
-			Main.rt.modalPanel.width = Main.rt.width;
-			Main.rt.modalPanel.height = Main.rt.height;
+			Main.rt.modalPanel.width = Main.CONFIG_W;
+			Main.rt.modalPanel.height = Main.CONFIG_H;
 			Main.rt.modalPanel.visible = true;
 			Main.rt.dialogPanel.setChildIndex(this,Main.rt.dialogPanel.numChildren -1);
 			

@@ -121,7 +121,7 @@
 		public static function timeString():String{
 			var d:Date = new Date();
 			var dtf:DateTimeFormatter = new DateTimeFormatter("en-US");
-			dtf.setDateTimePattern("HH mm");
+			dtf.setDateTimePattern("HH:mm");
 			return dtf.format(d);
 		}
 		public static function timeInt():Number{
