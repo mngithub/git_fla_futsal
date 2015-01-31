@@ -14,6 +14,7 @@
 	import flash.display.StageDisplayState;
 	import flash.events.MouseEvent;
 	import flash.text.TextField;
+	import flash.events.KeyboardEvent;
 	
 	
 	public class Main extends MovieClip {
@@ -30,6 +31,11 @@
 		public static var CONFIG_SERVER_URL:String;
 		public static var CONFIG_STEP_QUERY:Number;
 		public static var CONFIG_STEP_REFRESH_UI:Number;
+		
+		public static var CONFIG_KEY_PLUS_A:String;
+		public static var CONFIG_KEY_PLUS_B:String;
+		public static var CONFIG_KEY_MINUS_A:String;
+		public static var CONFIG_KEY_MINUS_B:String;
 		// ---------------------------------------------------------------
 
 		private var clockIntervalID:uint;
@@ -38,6 +44,12 @@
 		private var stepIntervalID:uint;
 		private var stepCnt:Number;
 		
+		// ---------------------------------------------------------------
+		
+		private static var cacheA:Number;
+		private static var cacheB:Number;
+		
+		// ---------------------------------------------------------------		
 		
 		public function Main() {
 			
@@ -70,6 +82,10 @@
 					|| config.serverURL.length() < 1
 					|| config.stepQuery.length() < 1
 					|| config.stepRefreshUI.length() < 1
+					|| config.keyPlusA.length() < 1
+					|| config.keyPlusB.length() < 1
+					|| config.keyMinusA.length() < 1
+					|| config.keyMinusA.length() < 1
 				){
 					failedOnLoadConfig();
 					return;
@@ -78,6 +94,11 @@
 				Main.CONFIG_SERVER_URL 					= config.serverURL;
 				Main.CONFIG_STEP_QUERY 					= Utils.parse(config.stepQuery);
 				Main.CONFIG_STEP_REFRESH_UI 			= Utils.parse(config.stepRefreshUI);
+				
+				Main.CONFIG_KEY_PLUS_A 					= config.keyPlusA;
+				Main.CONFIG_KEY_PLUS_B 					= config.keyPlusB;
+				Main.CONFIG_KEY_MINUS_A 				= config.keyMinusA;
+				Main.CONFIG_KEY_MINUS_B 				= config.keyMinusB;
 				
 				Main.rt.stepIntervalID = setInterval(function(){
 												
@@ -121,10 +142,30 @@
 			
 			// -------------------------------------------------------------------
 			// -------------------------------------------------------------------
+			function onKeyDown(ev:KeyboardEvent):void{ 
+				
+				trace("Key Pressed: " + String.fromCharCode(ev.charCode) +         " (character code: " + ev.charCode + ")"); 
+
+				var key:String = String.fromCharCode(ev.charCode);
+				
+				if(key == Main.CONFIG_KEY_PLUS_A){
+					Main.cacheA++;
+					updateScoreUI();
+				}else if(key == Main.CONFIG_KEY_MINUS_A){
+					if(Main.cacheA > 0) Main.cacheA--;
+					updateScoreUI();
+				}else if(key == Main.CONFIG_KEY_PLUS_B){
+					Main.cacheB++;
+					updateScoreUI();
+				}else if(key == Main.CONFIG_KEY_MINUS_B){
+					if(Main.cacheB > 0) Main.cacheB--;
+					updateScoreUI();
+				}
+				
+			} 
+			stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
 			
-			(Main.rt.mq as MaqueeText).setText("Hello world !! This is very long message ......................");
 			
-			/*
 			this.hiddenToggleButton.addEventListener(MouseEvent.CLICK, function(e:Event) {
 				try { 
 					if (stage.displayState == StageDisplayState.NORMAL) {
@@ -134,25 +175,12 @@
 					}
 				}catch(err:Error){}
 			});
-			this.hiddenQueryButton.addEventListener(MouseEvent.CLICK, function(e:Event) {
-				startQueryAndUpdateUI();
-			});
-			*/
+			
 		}
+		
 		private function doQuery():void{
 			
 			if(Main.DEBUG_TRACE) trace("[Query and UI]");
-			
-			var service = new HTTPService(function(arr){
-				
-				if(Main.DEBUG_TRACE) trace("[Response Query and UI]", arr.length);
-				
-
-				try{
-				
-					
-				}catch(err:Error){ trace("Error", err); }
-			});
 		}
 		
 		// -------------------------------------------------------------------
@@ -169,7 +197,24 @@
 			// วันที่
 			if (getChildByName("dateLabel") != null) this["dateLabel"].text = Utils.thaiDateString();
 		}
+		
+		private function updateScoreUI():void{
+			
+			trace(Main.cacheA,Main.cacheB);
+			
+			(Main.rt["scoreA_1"] as NumberPanel).setN(Math.floor(Main.cacheA / 10));
+			(Main.rt["scoreA_0"] as NumberPanel).setN(Main.cacheA % 10);
+			
+			(Main.rt["scoreB_1"] as NumberPanel).setN(Math.floor(Main.cacheB / 10));
+			(Main.rt["scoreB_0"] as NumberPanel).setN(Main.cacheB % 10);
+		}
+		
 		private function clearUI():void{
+			
+			Main.cacheA = 0;
+			Main.cacheB = 0;
+			
+			updateScoreUI();
 			/*
 			for(var i=1;i<=5;i++){
 				

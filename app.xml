@@ -15,6 +15,12 @@
 	<!-- update ข้อมูลทุกกี่วินาที  -->
 	<stepRefreshUI>5</stepRefreshUI>
 	
-	<!-- --------------------------- DAILY --------------------------- -->
+	<!-- --------------------------- KEY ---------------------------- -->
+
+	<keyPlusA>1</keyPlusA>
+	<keyMinusA>2</keyMinusA>
+
+	<keyPlusB>3</keyPlusB>
+	<keyMinusB>4</keyMinusB>
 	
 </config>
