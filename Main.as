@@ -28,13 +28,10 @@
 		public static var CONFIG_H:Number = 350;
 		
 		
-		public static var CONFIG_XML:String = "app.xml";
+		public static var CONFIG_XML:String = "singha.xml";
 		
 		// ค่าที่อ่านได้จาก config file
 		public static var CONFIG_AUTH:String;
-		public static var CONFIG_SERVER_URL:String;
-		public static var CONFIG_STEP_QUERY:Number;
-		public static var CONFIG_STEP_REFRESH_UI:Number;
 		
 		public static var CONFIG_KEY_SCORE_PLUS_A:String;
 		public static var CONFIG_KEY_SCORE_PLUS_B:String;
@@ -46,6 +43,7 @@
 		public static var CONFIG_KEY_TIME_FORWARD_MODE:String;
 		public static var CONFIG_KEY_TIME_FORWARD_RESET:String;
 		public static var CONFIG_KEY_TIME_COUNTDOWN_MODE:String;
+		public static var CONFIG_KEY_TIME_COUNTDOWN_RESET:String;
 		public static var CONFIG_KEY_TIME_COUNTDOWN_PLUS:String;
 		public static var CONFIG_KEY_TIME_COUNTDOWN_MINUS:String;
 		
@@ -109,6 +107,7 @@
 					|| config.keyTimeForwardMode.length() < 1
 					|| config.keyTimeForwardReset.length() < 1
 					|| config.keyTimeCountdownMode.length() < 1
+					|| config.keyTimeCountdownReset.length() < 1
 					|| config.keyTimeCountdownPlus.length() < 1
 					|| config.keyTimeCountdownMinus.length() < 1
 					|| config.timerDefaultMode.length() < 1
@@ -119,9 +118,6 @@
 					return;
 				}
 				Main.CONFIG_AUTH 						= config.auth;
-				Main.CONFIG_SERVER_URL 					= config.serverURL;
-				Main.CONFIG_STEP_QUERY 					= Utils.parse(config.stepQuery);
-				Main.CONFIG_STEP_REFRESH_UI 			= Utils.parse(config.stepRefreshUI);
 				
 				Main.CONFIG_KEY_SCORE_PLUS_A 			= config.keyScorePlusA;
 				Main.CONFIG_KEY_SCORE_PLUS_B 			= config.keyScorePlusB;
@@ -133,6 +129,7 @@
 				Main.CONFIG_KEY_TIME_FORWARD_MODE 		= config.keyTimeForwardMode;
 				Main.CONFIG_KEY_TIME_FORWARD_RESET 		= config.keyTimeForwardReset;
 				Main.CONFIG_KEY_TIME_COUNTDOWN_MODE 	= config.keyTimeCountdownMode;
+				Main.CONFIG_KEY_TIME_COUNTDOWN_RESET 	= config.keyTimeCountdownReset;
 				Main.CONFIG_KEY_TIME_COUNTDOWN_PLUS 	= config.keyTimeCountdownPlus;
 				Main.CONFIG_KEY_TIME_COUNTDOWN_MINUS 	= config.keyTimeCountdownMinus;
 				
@@ -143,21 +140,12 @@
 				}
 				Main.CONFIG_TIMER_COUNTDOWN_MODE_DEFAULT_PERIOD = Utils.parse(config.timerCountdownModeDefaultPeriod);
 				Main.CONFIG_TIMER_COUNTDONW_MODE_STEP = Utils.parse(config.timerCountdownModeStep);				
-				
-				Main.rt.stepIntervalID = setInterval(function(){
-					
-					Main.rt.updateTimerUI();
-					
-				}, 1000);
-				
-				// นาฬิกา 
-			 	Main.rt.clockIntervalID = setInterval(function(){ updateClockUI();}, (60 * 1000));
-				
-				Main.rt.clearUI();
-				
+
 				trace("--------------------------------");
 				trace("LOADED - config file");
 				trace("--------------------------------");
+				
+				onStartProgram();
 			});
 			loader.addEventListener(IOErrorEvent.IO_ERROR, function(e:Event) {
 										   
@@ -176,9 +164,10 @@
 			// -------------------------------------------------------------------
 			function onKeyDown(ev:KeyboardEvent):void{ 
 				
-				trace("Key Pressed: " + String.fromCharCode(ev.charCode) +         " (character code: " + ev.charCode + ")"); 
+				//trace("Key Pressed: " + String.fromCharCode(ev.charCode) + " (character code: " + ev.charCode + ")"); 
 
 				var key:String = String.fromCharCode(ev.charCode);
+				if(ev.charCode == 13) key = "enter";
 				
 				if(key == Main.CONFIG_KEY_SCORE_PLUS_A){
 					
@@ -232,6 +221,15 @@
 						updateTimerUI();
 					}
 					
+				}else if(key == Main.CONFIG_KEY_TIME_FORWARD_RESET){
+					
+					if(Main.DEBUG_TRACE) trace("[BUTTON] forward reset");
+					
+					if(Main.cacheTimerMode == "forward" && Main.cacheTimerState == "stop"){
+						
+						Main.cacheCountForward = 0;
+						updateTimerUI();
+					}
 				}else if(key == Main.CONFIG_KEY_TIME_COUNTDOWN_MODE){
 					
 					if(Main.DEBUG_TRACE) trace("[BUTTON] countdown mode");
@@ -243,7 +241,19 @@
 						updateTimerUI();
 					}
 					
+				}else if(key == Main.CONFIG_KEY_TIME_COUNTDOWN_RESET){
+					
+					if(Main.DEBUG_TRACE) trace("[BUTTON] countdown reset");
+					
+					if(Main.cacheTimerMode == "countdown" && Main.cacheTimerState == "stop"){
+						
+						Main.cacheCountCountdown = Main.CONFIG_TIMER_COUNTDOWN_MODE_DEFAULT_PERIOD;
+						updateTimerUI();
+					}
+					
 				}else if(key == Main.CONFIG_KEY_TIME_COUNTDOWN_PLUS){
+					
+					if(Main.DEBUG_TRACE) trace("[BUTTON] countdown plus");
 					
 					if(Main.cacheTimerMode == "countdown" && Main.cacheTimerState == "stop"){
 						
@@ -251,6 +261,8 @@
 						updateTimerUI();
 					}
 				}else if(key == Main.CONFIG_KEY_TIME_COUNTDOWN_MINUS){
+					
+					if(Main.DEBUG_TRACE) trace("[BUTTON] countdown minus");
 					
 					if(Main.cacheTimerMode == "countdown" && Main.cacheTimerState == "stop"){
 						
@@ -277,6 +289,19 @@
 				}catch(err:Error){}
 			});
 			
+		}
+		
+		private function onStartProgram():void{
+			
+			Main.rt.stepIntervalID = setInterval(function(){
+					
+				Main.rt.updateTimerUI();
+				
+			}, 1000);
+			
+			// นาฬิกา 
+			Main.rt.clockIntervalID = setInterval(function(){ updateClockUI();}, (60 * 1000));
+			Main.rt.clearUI();
 		}
 		
 		// -------------------------------------------------------------------
@@ -328,7 +353,6 @@
 				tmpTimer = Main.cacheCountForward;
 			}
 			
-			trace("tmpTimer",tmpTimer);
 			// ---------------------------------------------------
 			// อัพเดท UI
 			var min:Number = Math.floor(tmpTimer / 60);
@@ -354,7 +378,6 @@
 			Main.cacheTimerState = "stop";
 			Main.cacheCountForward = 0;
 			Main.cacheCountCountdown = Main.CONFIG_TIMER_COUNTDOWN_MODE_DEFAULT_PERIOD;
-			
 			updateTimerUI();
 		}
 		
@@ -364,9 +387,34 @@
 		
 		// โหลด config ไม่สำเร็จ บังคับ refresh ข้อมูล
 		private function failedOnLoadConfig():void{
-			
+			/*
 			var msg: ModalDialog = new ModalDialog("เกิดข้อผิดพลาดในการอ่านค่า "+ Main.CONFIG_XML +" \n กรุณาลองเปิดโปรแกรมใหม่อีกครั้ง");
 			(new DialogManager(msg)).showDialog();
+			*/
+			
+			// load default config
+			Main.CONFIG_AUTH 									= "FtdV5IIJap";
+			Main.cacheTimerMode 								= "countdown";
+			Main.CONFIG_TIMER_COUNTDOWN_MODE_DEFAULT_PERIOD 	= 420;
+			Main.CONFIG_TIMER_COUNTDONW_MODE_STEP 				= 30;			
+			
+			Main.CONFIG_KEY_SCORE_PLUS_A 						= "+";
+			Main.CONFIG_KEY_SCORE_MINUS_A 						= "6";
+			Main.CONFIG_KEY_SCORE_PLUS_B 						= "enter";
+			Main.CONFIG_KEY_SCORE_MINUS_B 						= "3";
+			Main.CONFIG_KEY_SCORE_RESET 						= "-";
+			
+			Main.CONFIG_KEY_TIME_START_STOP 					= "0";
+			
+			Main.CONFIG_KEY_TIME_FORWARD_MODE 					= "1";
+			Main.CONFIG_KEY_TIME_FORWARD_RESET 					= "4";
+			
+			Main.CONFIG_KEY_TIME_COUNTDOWN_MODE 				= "2";
+			Main.CONFIG_KEY_TIME_COUNTDOWN_RESET 				= "5";
+			Main.CONFIG_KEY_TIME_COUNTDOWN_PLUS 				= "/";
+			Main.CONFIG_KEY_TIME_COUNTDOWN_MINUS 				= "8";
+			
+			onStartProgram();
 		}
 		
 		// -------------------------------------------------------------------

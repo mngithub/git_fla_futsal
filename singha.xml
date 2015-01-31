@@ -1,0 +1,31 @@
+﻿<config>
+	
+	<!-- --------------------------- TIMER -------------------------- -->
+	
+	<auth>FtdV5IIJap</auth>
+
+	<!-- forward, countdown -->
+	<timerDefaultMode>countdown</timerDefaultMode>
+	<timerCountdownModeDefaultPeriod>420</timerCountdownModeDefaultPeriod>
+	<timerCountdownModeStep>30</timerCountdownModeStep>
+
+	<!-- --------------------------- KEY ---------------------------- -->
+
+
+	<keyScorePlusA>+</keyScorePlusA>
+	<keyScoreMinusA>6</keyScoreMinusA>
+	<keyScorePlusB>enter</keyScorePlusB>
+	<keyScoreMinusB>3</keyScoreMinusB>
+	<keyScoreReset>-</keyScoreReset>
+
+	<keyTimeStartStop>0</keyTimeStartStop>
+
+	<keyTimeForwardMode>1</keyTimeForwardMode>
+	<keyTimeForwardReset>4</keyTimeForwardReset>
+
+	<keyTimeCountdownMode>2</keyTimeCountdownMode>
+	<keyTimeCountdownReset>5</keyTimeCountdownReset>
+	<keyTimeCountdownPlus>/</keyTimeCountdownPlus>
+	<keyTimeCountdownMinus>8</keyTimeCountdownMinus>
+	
+</config>
