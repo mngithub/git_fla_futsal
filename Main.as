@@ -164,7 +164,7 @@
 			// -------------------------------------------------------------------
 			function onKeyDown(ev:KeyboardEvent):void{ 
 				
-				//trace("Key Pressed: " + String.fromCharCode(ev.charCode) + " (character code: " + ev.charCode + ")"); 
+				trace("Key Pressed: " + String.fromCharCode(ev.charCode) + " (character code: " + ev.charCode + ")"); 
 
 				var key:String = String.fromCharCode(ev.charCode);
 				if(ev.charCode == 13) key = "enter";
